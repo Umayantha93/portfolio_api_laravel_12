@@ -37,4 +37,39 @@ class AuthTest extends TestCase
         $response->assertJsonValidationErrors('email');
 
     }
+
+    public function test_user_can_register_and_receive_token(): void
+    {
+        $payload = [
+            'name' => 'Test User',
+            'email' => $email = 'testuser@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ];
+
+        $response = $this->postJson('/api/auth/register', $payload);
+        $response->assertCreated();
+        $response->assertJsonStructure(['access_token', 'user']);
+
+        $this->assertDatabaseHas('users', [
+            'email' => $email,
+        ]);
+    }
+
+        public function test_user_can_register_with_invalid_data(): void
+    {
+        $payload = [
+            'name' => '',
+            'email' => $email = 'wrong-email',
+            'password' => 'passw',
+            'password_confirmation' => 'password',
+        ];
+
+        $response = $this->postJson('/api/auth/register', $payload);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['name', 'email', 'password']);
+
+    }
+
 }
