@@ -93,4 +93,24 @@ class AuthTest extends TestCase
         $protected->assertStatus(401);
     }
 
+    public function test_guest_cannot_access_protected_routes(): void
+    {
+        $response = $this->getJson('/api/user');
+
+        $response->assertStatus(401);
+    }
+
+    public function test_authenticated_user_can_access_user_endpoint(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user);
+
+        $response = $this->getJson('/api/user');
+        $response->assertStatus(200);
+        $response->assertJson([
+            'id' => $user->id,
+            'email' => $user->email,
+        ]);
+    }
 }
