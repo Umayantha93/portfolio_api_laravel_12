@@ -72,4 +72,25 @@ class AuthTest extends TestCase
 
     }
 
+    public function test_user_can_logout_and_token_is_deleted(): void
+    {
+        $user = User::factory()->create();
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->postJson('/api/auth/logout');
+
+        $response->assertNoContent();
+
+        $this->app['auth']->forgetGuards();
+
+        $protected =$this->withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->getJson('/api/user');
+
+        $protected->assertStatus(401);
+    }
+
 }
